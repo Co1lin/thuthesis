@@ -1,0 +1,81 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{graphics}
+% \usepackage[UTF8]{ctex}
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
+\usepackage{geometry}
+\usepackage{gensymb}
+\usepackage{enumerate}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{listings} 
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{makecell}
+\usepackage{url}
+\lstset{
+  frame=shadowbox, %把代码用带有阴影的框圈起来
+  rulesepcolor=\color{red!20!green!20!blue!20},%代码块边框为淡青色
+  keywordstyle=\color{blue!90}\bfseries, %代码关键字的颜色为蓝色，粗体
+  commentstyle=\color{red!10!green!70}\textit,    % 设置代码注释的颜色
+  showstringspaces=false,%不显示代码字符串中间的空格标记
+  numbers=left, % 显示行号
+  numberstyle=\tiny,    % 行号字体
+  stringstyle=\ttfamily, % 代码字符串的特殊格式
+  breaklines=true, %对过长的代码自动换行
+  extendedchars=false,  %解决代码跨页时，章节标题，页眉等汉字不显示的问题
+  %escapebegin=\begin{CJK*},escapeend=\end{CJK*},      % 代码中出现中文必须加上，否则报错
+  texcl=true}
+\newcommand{\RNum}[1]{\uppercase\expandafter{\romannumeral #1\relax}}
+\def\celsius{\ensuremath{^\circ\hspace{-0.09em}\mathrm{C}}}
+\geometry{a4paper, scale = 0.8}
+\begin{document}
+\bibliographystyle{plain}
+
+\title{Related Works}
+\author{Jinjun Peng}
+\maketitle
+
+% 3 ~ 4 篇外文资料， 5000 外文印刷字符的调研阅读报告
+% Freefuzz, NNSmith, Muffin
+
+Fuzz testing, or fuzzing, was proposed by Prof. Barton Miller in an operating system course project. They generated random inputs, fed them into several Unix utilities, and saw if there was anything unexpected, such as crashes or wrong outputs. Based on it, people have developed various fuzzing techniques sharing the similar underlying idea to test many software programs, including compilers, graphics libraries, and drivers, to strengthen the reliability of software systems.
+
+As deep learning has been becoming more and more popular in recent years, researchers have realized the importance of the reliability of deep learning libraries, such as PyTorch and TensorFlow, as they are deployed in a variety of applications, and some of them, like self-driving vehicles, are safety-critical scenarios. Therefore, several fuzzing-based testing approaches have been proposed to discover bugs and vulnerabilities hidden inside deep learning libraries, which could be categorized as follows.
+
+\section{API-level Fuzzing}
+
+APIs provided by deep learning libraries are the interface that developers interact with to implement deep learning algorithms. Among thousands of these APIs, tensor operation APIs, also tensor operators (e.g. \texttt{torch.add}, \texttt{torch.nn.Linear}), make up the majority, compared with other ones like \texttt{torch.save} and \texttt{torch.optim.Adam}. Tensor operators are the building blocks of deep learning models, thus it is critical to ensure that they are operating as expected. Either crashes or semantic errors could lead to unpleasant consequences when running models, like giving no results or producing wrong results without any warning.
+
+Freefuzz is the first general-purpose and fully automated API-level fuzzing approach for testing popular deep learning libraries, which turns out to be very effective. The whole system can be split into four parts:
+
+\begin{itemize}
+    \item \textbf{Code collection.}
+    \item \textbf{Instrumentation.}
+    \item \textbf{Mutation.}
+    \item \textbf{Differential Testing.}
+\end{itemize}
+
+Freefuzz is evaluated in two aspects. 1) Coverage at different levels reflects how much code the testing tool touches. At API-level, Freefuzz tested 470 tensor operation APIs for PyTorch and 688 for TensorFlow. 2) The number of discovered bugs indicates the real-world effectiveness of the testing technique. Freefuzz found 28 bugs for PyTorch and 21 for TensorFlow.
+
+\section{Model-level Fuzzing}
+
+Models are the core of deep learning algorithms, like ResNet for computer vision and Transformers for natural language processing. Models consist of well-connected tensor operators, but improving operators' reliability with API-level fuzzing is not enough to build reliable deep learning systems. It is because of the existence of deep learning compilers, like TVM, XLA, etc., which aim to speed up the inference of large models. A bunch of optimization techniques has been incorporated into these compilers, such as constant folding, operator fusion, and tiling. It is highly possible for developers to make some mistakes when implementing these optimizations, so it is important to test deep learning compilers. But many optimization functions, as listed before, cannot be triggered by a single tensor operator, which reveals the limitation of API-level fuzzing. While single-API invocations can easily be collected with approaches in FreeFuzz, it is non-trivial to get a number of diverse models consisting of multiple tensor operators which will serve as the essential part of oracles for testing deep learning compilers.
+
+For graph-level fuzzers, usually the more different models they generate, the higher coverages they can achieve, and the more bugs they can find. There exist several model-level fuzzing works, and among them, NNSmith is the one which can generate the most diverse models. We only focus on three important components of it.
+
+\begin{itemize}
+    \item \textbf{Operator Spec.}
+    \item \textbf{Model Generation.}
+    \item \textbf{Differential Testing.}
+\end{itemize}
+
+Other similar works (e.g. ) cannot generate models as diverse as NNSmith mainly because they are not capable of handling non-shape-preserving operators. It is trivial to build a deep learning model only with shape-preserving operators like element-wise operators (e.g. \texttt{relu}), but that is not the way developers build models for real-world applications. Therefore, a model generator needs to connect different operators with input/output tensors in different shapes while satisfying shape constraints. For example, the output shapes of an operator should be compatible with the input shapes of its successors, which poses challenges. In order to compose valid models with both shape-preserving operators and non-shape-preserving ones, works before NNSmith bypass the shape constraints issue by transforming non-shape-preserving operators to shape-preserving ones with extra layers, including Reshape and Linear, following them. However, this is still not how operators are connected in real-world models, and it also limits the model diversity.
+
+
+
+\end{document}
