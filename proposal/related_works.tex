@@ -17,6 +17,7 @@
 \usepackage{amsmath}
 \usepackage{makecell}
 \usepackage{url}
+\usepackage{lineno}
 \lstset{
   frame=shadowbox, %把代码用带有阴影的框圈起来
   rulesepcolor=\color{red!20!green!20!blue!20},%代码块边框为淡青色
@@ -36,10 +37,10 @@
 \begin{document}
 \bibliographystyle{plain}
 
-\title{Related Works}
+\title{Background and Related Works}
 \author{Jinjun Peng}
 \maketitle
-
+%\linenumbers
 % 3 ~ 4 篇外文资料， 5000 外文印刷字符的调研阅读报告
 % Freefuzz, NNSmith, Muffin
 
@@ -54,28 +55,28 @@ APIs provided by deep learning libraries are the interface that developers inter
 Freefuzz is the first general-purpose and fully automated API-level fuzzing approach for testing popular deep learning libraries, which turns out to be very effective. The whole system can be split into four parts:
 
 \begin{itemize}
-    \item \textbf{Code collection.}
-    \item \textbf{Instrumentation.}
-    \item \textbf{Mutation.}
-    \item \textbf{Differential Testing.}
+    \item \textbf{Code collection.} In order to avoid manual construction of API usage to generate test cases, it collects real-world API usage from unit tests by deep learning developers and open-source projects on GitHub.
+    \item \textbf{Instrumentation.} Code in both unit tests and open-source projects cannot be directly used as inputs for testing deep learning libraries, as it only needs a single API invocation each time, and other code needs to be pruned. Thanks to the dynamic typing property of Python, attracting API invocations with all input and output data can be easily achieved by instrumenting a list of deep learning APIs at runtime. In detail, each API can be substituted by a wrapper that will record input/output data in a database so that each invocation can be replayed.
+    \item \textbf{Mutation.} Replaying collected API invocations can find some bugs for deep learning compilers, since running successfully in eager mode cannot guarantee success in compiled graph mode. However, to fully utilize existing API usages, mutation is commonly applied in fuzzers to generate highly possible valid test cases with minimum effort. In the scenario of testing deep learning APIs, a variety of attributes may be mutated, such as axis/dimension, tensor shapes, or working modes (e.g. padding modes).
+    \item \textbf{Differential Testing.} Exceptions and crashes indicate potential bugs. But for semantic errors like wrong output values, ground truth values are needed to indicate bugs, and values given by eager running mode are always regarded as truth in differential testing as it usually involves nothing related to compilation and optimization.
 \end{itemize}
 
 Freefuzz is evaluated in two aspects. 1) Coverage at different levels reflects how much code the testing tool touches. At API-level, Freefuzz tested 470 tensor operation APIs for PyTorch and 688 for TensorFlow. 2) The number of discovered bugs indicates the real-world effectiveness of the testing technique. Freefuzz found 28 bugs for PyTorch and 21 for TensorFlow.
 
 \section{Model-level Fuzzing}
 
-Models are the core of deep learning algorithms, like ResNet for computer vision and Transformers for natural language processing. Models consist of well-connected tensor operators, but improving operators' reliability with API-level fuzzing is not enough to build reliable deep learning systems. It is because of the existence of deep learning compilers, like TVM, XLA, etc., which aim to speed up the inference of large models. A bunch of optimization techniques has been incorporated into these compilers, such as constant folding, operator fusion, and tiling. It is highly possible for developers to make some mistakes when implementing these optimizations, so it is important to test deep learning compilers. But many optimization functions, as listed before, cannot be triggered by a single tensor operator, which reveals the limitation of API-level fuzzing. While single-API invocations can easily be collected with approaches in FreeFuzz, it is non-trivial to get a number of diverse models consisting of multiple tensor operators which will serve as the essential part of oracles for testing deep learning compilers.
+Models are the core of deep learning algorithms, like ResNet for computer vision and Transformers for natural language processing. Models consist of well-connected tensor operators, but improving operators' reliability with API-level fuzzing is not enough to build reliable deep learning systems. It is because of the existence of deep learning compilers, like TVM, XLA, etc., which aim to speed up the inference of large models. A bunch of optimization techniques have been incorporated into these compilers, such as constant folding, operator fusion, and tiling. It is highly possible for developers to make some mistakes when implementing these optimizations, so it is important to test deep learning compilers. But many optimization functions, as listed before, cannot be triggered by a single tensor operator, which reveals the limitation of API-level fuzzing. While single-API invocations can easily be collected with approaches in FreeFuzz, it is non-trivial to get a number of diverse models consisting of multiple tensor operators which will serve as the essential part of oracles for testing deep learning compilers.
 
-For graph-level fuzzers, usually the more different models they generate, the higher coverages they can achieve, and the more bugs they can find. There exist several model-level fuzzing works, and among them, NNSmith is the one which can generate the most diverse models. We only focus on three important components of it.
+For graph-level fuzzers, usually, the more different models they can generate, the higher coverage they can achieve, and the more bugs they can find. There exist several model-level fuzzing works, and among them, NNSmith is the one which can generate the most diverse models. We only focus on three important components of it.
 
 \begin{itemize}
-    \item \textbf{Operator Spec.}
-    \item \textbf{Model Generation.}
-    \item \textbf{Differential Testing.}
+    \item \textbf{Operator Specification} In order to generate models with theoretically arbitrary tensor shapes, NNSmith first defines a symbolic operator set. By "symbolic", it means each operator is modeled by two kinds of symbolic rules, where symbols denote the unknown tensor dimension sizes. 1) Shape transformation rules define how to compute output shapes given input shapes. 2) Shape constraints define the conditions that need to be satisfied by tensor shapes, such as each dimension size should be equal to or greater than zero.
+    \item \textbf{Model Generation.} With symbolic defined operators, NNSmith first generates a symbolic graph/model operator by operator, where all tensor shapes are symbolic/uncertain. When inserting a new node/operator, it adds several symbolic constraints to a rule set, including the equivalence between input tensor shapes of this operator and output tensor shapes of its predecessors and the shape constraints in the operator's definition. After inserting a certain amount of nodes/operators, it invokes an SMT solver to assign concrete values to all symbols satisfying all accumulated symbolic rules, turning a symbolic graph into a concrete graph, also a valid input neural network for compilers.
+    \item \textbf{Differential Testing.} Like FreeFuzz, NNSmith uses outputs given by the eager running mode as ground truth and compares the outputs produced by the graph/compiled mode with it, to reveal potential bugs of deep learning compilers. Occasionally, the deep learning framework cannot even execute the test case in eager mode, then it indicates a bug unrelated to the compiler but also needs attention.
 \end{itemize}
 
-Other similar works (e.g. ) cannot generate models as diverse as NNSmith mainly because they are not capable of handling non-shape-preserving operators. It is trivial to build a deep learning model only with shape-preserving operators like element-wise operators (e.g. \texttt{relu}), but that is not the way developers build models for real-world applications. Therefore, a model generator needs to connect different operators with input/output tensors in different shapes while satisfying shape constraints. For example, the output shapes of an operator should be compatible with the input shapes of its successors, which poses challenges. In order to compose valid models with both shape-preserving operators and non-shape-preserving ones, works before NNSmith bypass the shape constraints issue by transforming non-shape-preserving operators to shape-preserving ones with extra layers, including Reshape and Linear, following them. However, this is still not how operators are connected in real-world models, and it also limits the model diversity.
+Other similar works (e.g. LEMON, Muffin) cannot generate models as diverse as NNSmith mainly because they are not capable of handling non-shape-preserving operators. It is trivial to build a deep learning model only with shape-preserving operators like element-wise operators (e.g. \texttt{relu}), but that is not the way developers build models for real-world applications. Therefore, a model generator needs to connect different operators with input/output tensors in different shapes while satisfying shape constraints. For example, the output shapes of an operator should be compatible with the input shapes of its successors, which poses challenges. In order to compose valid models with both shape-preserving operators and non-shape-preserving ones, works before NNSmith bypass the shape constraints issue by transforming non-shape-preserving operators to shape-preserving ones with extra layers, including Reshape and Linear, following them. However, this is still not how operators are connected in real-world models, and it also limits the model diversity.
 
-
+NNSmith, as shown above, can generate very diverse models theoretically. However, in practice, modeling each tensor operator supported by deep learning libraries with handwritten symbolic rules needs tons of human effort. Thus, our work tries to automatically incorporate hundreds of diverse tensor operators to generate deep learning models for testing, which finally turns out to be very effective.
 
 \end{document}

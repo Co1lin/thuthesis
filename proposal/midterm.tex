@@ -16,6 +16,7 @@
 \usepackage{subfigure}
 \usepackage{bbm}
 \usepackage[outputdir=../]{minted}
+\usepackage{hyperref}
 % \usepackage[utf8]{inputenc}
 % \usepackage{CJKutf8}
 \usetheme{Berkeley}
@@ -99,7 +100,7 @@
     \begin{itemize}
         \item Feed random inputs into program to test\\
         e.g. Input random strings to Unix programs
-        \item Unexpected behavior $\rightarrow$ Bug!
+        \item Unexpected behavior (crash, wrong result, ...) $\rightarrow$ Bug!
         \item Input for deep learning compilers: NN/computational graph
         \item more diverse input graph $\rightarrow$ higher coverage \& more potential bugs
     \end{itemize}
@@ -113,6 +114,11 @@
     \begin{itemize}
         \item \texttt{torch.add(x, y)}
         \item "free": collect traces from unit tests and public repos
+        \begin{itemize}
+            \item operator: \texttt{torch.add}
+            \item args: \texttt{x = torch.Tensor([1., 2.3]), y = torch.Tensor([4.5])}
+            \item outputs: \texttt{torch.tensor([5.5, 6.8])}
+        \end{itemize}
         \item limitation: cannot test graph optimizations in compilers
     \end{itemize}
 \end{frame}
@@ -135,6 +141,7 @@
                 \item constraints on input shapes
             \end{itemize}
             \item symbolically generate a \textit{valid} graph/DNN
+            \item invoke SMT solver to get a solution $\rightarrow$ concrete graph
             \item limitation: involves lots of human effort to write symbolic rules
         \end{itemize}
     \end{itemize}
@@ -146,7 +153,7 @@
 \begin{frame}{Overview}
     \begin{figure}
         \centering
-        \includegraphics[scale=0.225]{figs/overview.png}
+        \includegraphics[scale=0.25]{figs/overview.png}
         \label{fig:overview}
     \end{figure}
 \end{frame}
@@ -169,56 +176,66 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Hybrid Graph Generation}
+\begin{frame}[fragile]{Hybrid Graph Generation}
     Evaluation on PyTorch (branch coverage)
     \begin{itemize}
-        \item NNSmith: 40.0k / 258k
-        \item Ours: 45.5k / 258k ; 13.8\% improvement
+        \item NNSmith: 40.0k % / 258k
+        \item Ours: 45.5k ; 13.8\% improvement
     \end{itemize}
     Bug sample:
     \begin{figure}
         \centering
-        \includegraphics[scale=0.18]{figs/bug_sample.png}
+        \includegraphics[scale=0.14]{figs/bug_sample.png}
         \label{fig:bug_sample}
     \end{figure}
 \end{frame}
 
-\subsection{Code Generation}
-\begin{frame}{Code Generation}
-    NNSmith: do forward propagation in a complex for-loop
+\subsection{Generation \& Parsing}
+\begin{frame}[fragile]{Generation \& Parsing}
+    NNSmith: executor: do forward propagation in a complex loop
     \begin{itemize}
-        \item a container for all intermediate variables
-        \item a container for all operators (callable functions and \texttt{nn.Module})
-    \end{itemize}
-    Issues of NNSmith bug reports:
-    \begin{itemize}
-        \item not similar to real-world human written models
-        \item compilers may break the graph into several components $\rightarrow$ lose possible graph-level optimizations
-        \item very hard to debug/minimize; time-consuming
-    \end{itemize}
-    Ours: generate clean \& simple codes for forward propagation
-    \begin{itemize}
-        \item generate graphs as GraphIR
-        \item generate (Python) codes based on GraphIR
+        \item has branches leading to graph breaking
+        \item e.g. \begin{minted}[
+            fontsize=\tiny,
+            linenos,
+            frame=lines,
+            framesep=1.5mm,
+            bgcolor=SlightGray,
+        ]{python}
+out_tensors = instr.fwd_fn(*inp_tensors) # forward
+if isinstance(out_tensors, tf.Tensor):
+    out_tensors = [out_tensors]
+if isinstance(out_tensors, tuple):
+    out_tensors = list(out_tensors)
+for i_out, out_key in enumerate(instr.out_keys):
+    key2tensor[out_key] = out_tensors[i_out] # store outputs
+        \end{minted}
+        \item bug reports: do not have a simple Python code snippet $\rightarrow$\\
+        very hard/time-consuming to debug/minimize
     \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Code Generation}
+\begin{frame}{Generation \& Parsing}
+    \begin{itemize}
+        \item Generate clean \& simple code for forward propagation
+        \item Parse existing code snippets (reports of fixed bugs, code from LLM) to utilize (mutate) them
+    \end{itemize}
+    Medium of Graph Manipulation: GraphIR
+    \begin{figure}
+        \centering
+        \includegraphics[scale=0.2]{figs/parse_gen.png}
+        \label{fig:parse_gen}
+    \end{figure}
+    Benefits of designing a new IR:
+    \begin{itemize}
+        \item Do not rely on other limited IRs (e.g., ONNX: cannot cover all operators in PyTorch, \texttt{addmul})
+        \item Support different frameworks/backends w/o changing/duplicating graph-manipulation codes
+    \end{itemize}
+    % Parsing and Code Generation based on \texttt{torch.fx.Graph}
+\end{frame}
+
+\begin{frame}[fragile]{Generation \& Parsing}
     Sample of generated code:
-    % \begin{columns}
-    %     \column{0.5\textwidth}
-    %     \begin{figure}
-    %         \centering
-    %         \includegraphics[scale=0.125]{figs/gen_code_0.png}
-    %         \label{fig:gen_code_0}
-    %     \end{figure}
-    %     \column{0.5\textwidth}
-    %     \begin{figure}
-    %         \centering
-    %         \includegraphics[scale=0.13]{figs/gen_code_1.png}
-    %         \label{fig:gen_code_1}
-    %     \end{figure}
-    % \end{columns}
     \begin{columns}
     \column{0.02\textwidth}
     \column{0.98\textwidth}
@@ -229,56 +246,43 @@
             framesep=1.5mm,
             bgcolor=SlightGray,
         ]{python}
-from typing import Dict
-import pickle
-import torch
-import torch.nn as nn
-
-with open('params.pkl', 'rb') as f:
-    params: Dict[str, torch.Tensor] = pickle.load(f) # 'p1': ..., 'p2': ...
-with open('inputs.pkl', 'rb') as f:
-    inputs: Dict[str, torch.Tensor] = pickle.load(f) # 'v1_0': ..., 'v2_0': ...
-
-class Model(nn.Module):
+class FxModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        # nn.parameter.Parameter objects (with comments for shapes)
+        self.m_0 = Linear(in_features=3, out_features=4, bias=True)
+        self.load_state_dict(torch.load(r'gened/state_dict.pt'))
 
-        # nn.Module objects
-
-
-    def forward(self, v3_0):
-        # v3_0: (50, 100)
-        v4_0 = v3_0.zero_() # torch.Tensor.zero_-0 # v4_0: (50, 100)
-        v1_0 = v4_0.expand(1, 1, 50, 100) # v1_0: (1, 1, 50, 100)
-        v2_0 = v4_0.zero_() # torch.Tensor.zero_-0 # v2_0: (50, 100)
-        v0_0 = torch.div(v2_0, v2_0, rounding_mode=None) # v0_0: (50, 100)
-        return [v1_0, v0_0]
+    def forward(self, v0_0 : torch.Tensor):
+        getitem = v0_0[(0, 0)]
+        add = v0_0 + 3.14;  v0_0 = None
+        add_1 = add + getitem;  add = getitem = None
+        m_0 = self.m_0(add_1);  add_1 = None
+        split = torch.functional.split(m_0, [1, 3], dim = -1);  m_0 = None
+        getitem_1 = split[0]
+        getitem_2 = split[1];  split = None
+        mul = torch.mul(input = getitem_1, other = getitem_2);
+            getitem_1 = getitem_2 = None
+        cat = torch.cat([mul, mul], dim = -1);  mul = None
+        flatten = cat.flatten();  cat = None
+        return flatten
     \end{minted}
     \end{columns}
 \end{frame}
 
-\subsection{Extension for AI-assisted Model Generation}
-\begin{frame}{Extension for AI-assisted Model Generation}
-    Utilize previous bug reports or ChatGPT
+\subsection{Plan}
+\begin{frame}{Plan}
+    Apr. (Week 7 - 10): Stabilize impl. of parsing and generation.
     \begin{itemize}
-        \item Parse existing model definitions to GraphIR
-        \item Do mutation to generate new cases ("locality")
+        \item Formally upstream these features into NNSmith.
+        \item Show demo of utilizing existing code snippets.
     \end{itemize}
-    Parsing
-    \begin{itemize}
-        \item PyTorch tracing/TorchDynamo:\\Python code $\rightarrow$ PyTorch IR
-        \item Our converter: PyTorch IR $\rightarrow$ our GraphIR
-    \end{itemize}
-\end{frame}
-
-\subsection{Empirical Study on Root Causes}
-\begin{frame}{Empirical Study on Root Causes}
+    May. (Week 10 - 11): Case Study on Root Causes
     \begin{itemize}
         \item Track progress of submitted issues
         \item Analyze developers' commit records and discussions to learn root causes
         \item Inspire future research: efficient debugging
     \end{itemize}
+    May. \& June (Week 12 - 16): Summarize and draft the final thesis
 \end{frame}
 
 \begin{frame}{The End}
@@ -287,8 +291,6 @@ class Model(nn.Module):
 
 % \end{CJK}
 \end{document}
-
-
 
 \iffalse
 
