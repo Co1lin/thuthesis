@@ -136,24 +136,24 @@
 \usepackage{longtable}
 
 % 算法
-\usepackage{algorithm}
-\usepackage{algorithmic}
+% \usepackage{algorithm}
+\usepackage[ruled, vlined, linesnumbered, commentsnumbered, longend]{algorithm2e} % changed by Colin
 
 % 量和单位
 \usepackage{siunitx}
 
 % 参考文献使用 BibTeX + natbib 宏包
 % 顺序编码制
-\usepackage[sort]{natbib}
-\bibliographystyle{thuthesis-numeric}
+% \usepackage[sort]{natbib}
+% \bibliographystyle{thuthesis-numeric}
 
 % 著者-出版年制
 % \usepackage{natbib}
 % \bibliographystyle{thuthesis-author-year}
 
 % 本科生参考文献的著录格式
-% \usepackage[sort]{natbib}
-% \bibliographystyle{thuthesis-bachelor}
+\usepackage[sort]{natbib}
+\bibliographystyle{thuthesis-bachelor}
 
 % 参考文献使用 BibLaTeX 宏包
 % \usepackage[style=thuthesis-numeric]{biblatex}
@@ -177,6 +177,9 @@
   \fi
 }
 \makeatother
+
+\usepackage[outputdir=../]{minted}
+\usemintedstyle{manni}
 
 % hyperref 宏包在最后调用
 \usepackage{hyperref}
