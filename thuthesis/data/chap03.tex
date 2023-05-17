@@ -143,7 +143,7 @@ F: &\{(T^\text{in}, A)\} \rightarrow \{T^\text{out}\} ~, \text{where} \\
     \caption{构建具体算子集合 \texttt{BuildConreteOpSet($\cdot$)}}
     \label{algo:build_copset}
 \KwIn{调用记录集合 $H$}
-\KwOut{具体算子集合 $C$}
+\KwOut{具体算子集合 $\mathcal{C}$}
 \SetKw{KwIs}{is}
 \SetKw{Continue}{continue}
 
@@ -165,7 +165,7 @@ F: &\{(T^\text{in}, A)\} \rightarrow \{T^\text{out}\} ~, \text{where} \\
             $b_2 \gets b_2 \wedge$ \texttt{all\_close}($T_0, T_0^{'}$)\;
         }
         \lIf{$b_2$ \KwIs \texttt{false}} {\Continue} \label{algo:build_copset:tclose:e}
-        $C$\texttt{.add}($<f, M_I, A, M_O>$)\;
+        $\mathcal{C}$\texttt{.add}($<f, M_I, A, M_O>$)\;
     }
 }
 \end{algorithm}
@@ -224,12 +224,66 @@ NNSmith 中为每个算子编写了两类规则，即张量形状变换规则与
 
 \section{混合算子计算图生成算法}
 
-类比混合执行结合具体执行与符号执行的思想，我们改进 NNSmith 中的计算图生成算法，设计可以同时利用 NNSmith 中的符号算子与本文工作中的具体算子的混合计算图生成算法。
+类比混合执行结合具体执行与符号执行的思想，我们改进 NNSmith 中的计算图生成算法，设计可以同时利用 NNSmith 中的符号化算子与本文工作中的具体算子的混合算子计算图生成算法。
 
+混合执行对符号执行的改进之处在于，不会累积符号化规则直到最后再求解，而是面对难以符号化表达的逻辑，及时进行随机具体化。类似地，我们对 NNSmith 中符号化计算图生成算法的改进之处在于，不会累积符号化规则与约束直至图中节点达到预设值才求解，而是在插入每一个算子时进行及时的随机具体化，每一步插入结束时都能得到一个具体化的计算图。
 
+由于我们对 NNSmith 的计算图生成算法做改进，因而在此不再完整地赘述整体的计算图生成算法，而是介绍对其中前向算子插入逻辑的改动。算法 \ref{algo:hygen} 描述了向计算图 $G$ 中插入一个新算子的过程，其顶层逻辑为随机选择以下两种算子插入模式：
+\begin{itemize}
+    \item \textbf{插入符号化算子。}符号化算子包括两种： NNSmith 中由人工编写规则定义的符号化算子，和基于本文工作中的偏算子进行规则与约束推理得到的符号化算子。首先我们从全部符号化算子中随机选择一个算子，然后枚举计算图中所有与这个算子的输入张量组合在维数和数据类型上一致的张量组合。因为实验中我们不会生成算子个数大于 10 的计算图，因而此处枚举操作的时间开销不至于过大。接着我们考虑每一个符合要求的张量组合，将其代入选定的算子对输入张量形状的符号约束，并用 SMT 求解器进行求解。如果成功得到了一组解，则据此将选定的算子立即具体化，并插入到计算图中。对比 NNSmith ，此处没有将符号规则与约束累积到最后求解，因此每一步插入前后计算图都是具体化的。
+    \item \textbf{插入具体算子。} 具体算子的插入本质上是计算图中已有张量组合与具体算子的输入张量组合之间的匹配。例如，计算图中已有两个 \texttt{float32} 类型的张量，形状分别为 \texttt{[8,4,5,5]} 和 \texttt{[4,4,3,3]} ；而具体算子 \texttt{F.conv2d} 的输入恰好也是 \texttt{float32} 类型的形状分别为 \texttt{[8,4,5,5]} 和 \texttt{[4,4,3,3]} 的张量，于是，便可以将两个已有张量分别作为具体算子 \texttt{F.conv2d} 的两个输入，从而插入一个新的具体算子。一般地，我们枚举计算图中所有的张量组合，组合的枚举可以用全局容器进行缓存优化，在每一步插入新算子后进行更新，以避免冗余计算。对于每一种已经存在的张量组合，我们在具体算子数据集中查找是否有输入张量组合恰好与之一致的算子，若有则将其插入到计算图中。为了提高查找效率，我们提前建立了张量形状与数据类型的不同组合到具体算子的映射。
+\end{itemize}
+
+\begin{algorithm}
+    \caption{混合算子计算图生成算法中的前向算子插入 \texttt{ForwardInsert($\cdot$)}}
+    \label{algo:hygen}
+\KwIn{计算图 $G$, 符号化算子集合 $\Phi_s$, 具体算子集合 $\mathcal{C}$}
+% \KwOut{具体算子集合 $C$}
+\SetKw{KwIs}{is}
+\SetKw{Continue}{continue}
+\SetKwProg{Fn}{Function}{:}{}
+
+\SetKwFunction{FForwardInsert}{ForwardInsert}
+\SetKwFunction{FForwardInsertSymbOp}{ForwardInsertSymbOp}
+\SetKwFunction{FForwardInsertConcreteOp}{ForwardInsertConcreteOp}
+
+\Fn{\FForwardInsert{$G$}} {
+    \uIf{$\texttt{uniform\_sample(0,1)} < 0.5$} {
+        % $\phi_s \gets$ 随机选取一个符号化算子\;
+        $\phi_s \gets$ $\Phi_s$\texttt{.sample()}\;
+        \texttt{ForwardInsertSymbOp}($G$, $\phi_s$)\;
+    }
+    \Else{
+        \texttt{ForwardInsertConcreteOp}($G$)\;
+    }
+}
+
+\Fn{\FForwardInsertSymbOp{$G$, $\phi_s$}} {
+    % $\mathcal{I} \gets$ $G$ 中所有维数与数据类型与 $\phi_s$ 的输入一致的张量组合
+    $\mathcal{I} \gets$ $G$.\texttt{tensor\_combinations}($\phi_s$\texttt{.input.ranks}, $\phi_s$\texttt{.input.dtypes})\;
+    \For{$i \in \mathcal{I}$} {
+        $m \gets \phi$\texttt{.requires}($i$)\;
+        $s \gets$ \texttt{solver.solve}($m$)\;
+        \If{$s$} {
+            $\phi_c \gets \phi$\texttt{.concretize\_by}($s$)\;
+            $G$\texttt{.insert\_consumer}($i, \phi_c$)\;
+        }
+    }
+}
+
+\Fn{\FForwardInsertConcreteOp{$G$}} {
+    \For{$t \in G$.\texttt{tensor\_combinations}} {
+        $\mathcal{C}_\text{cand} \gets \mathcal{C}$\texttt{.lookup}($t$)\;
+        $c \gets \mathcal{C}_\text{cand}$\texttt{.sample()}\;
+        $G$\texttt{.insert\_consumer}($t, c$)\;
+    }
+}
+
+\end{algorithm}
 
 \section{差分测试与漏洞寻找}
 
+与 NNSmith 相同，对每个从计算图生成算法构造出的测例，我们分别在不启用编译器的解释执行模式，和启用编译器的图执行模式下运行，运用差分测试比较其结果。若在任一模式下执行失败，则隐式地寻找到漏洞。若在两种模式下均成功执行，但结果的差距不在误差允许范围内，则显式地寻找到漏洞。
 
 \iffalse
 \chapter{数学符号和公式}
