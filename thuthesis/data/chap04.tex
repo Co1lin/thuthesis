@@ -12,13 +12,13 @@ NNSmith 中没有显式地对所生成计算图进行表示，而是用 Python �
 \end{enumerate}
 因此，我们需要实现从所生成的计算图，到高级语言描述的、最小可复现代码的转换过程，以清晰直观地呈现可触发漏洞的代码逻辑，并减轻漏洞复现与汇报的人工负担。
 
-此外， NNSmith 从零开始构建计算图，没有利用任何真实世界代码；本文在计算图生成时引入了来自真实世界代码的具体算子，在单个算子层面利用了已存在的代码来构造测例。而未来可以探索的方向之一是在多算子层面利用已经存在的代码，来源包括已被修复漏洞的触发代码中的片段、开源项目中的模型片段、以及 ChatGPT \cite{chatgpt} 等大语言模型生成的代码片段等，在这些片段的基础上进行编译，以构造测例。而为了利用已存在代码片段并进行变异操作，需要实现从 Python 代码片段到 NNSmith 中计算图表示的转换过程。
+此外， NNSmith 从零开始构建计算图，没有利用任何真实世界代码；本文在计算图生成时引入了来自真实世界代码的具体算子，在单个算子层面利用了已存在的代码来构造测例。而未来可以探索的方向之一是在多算子层面利用已经存在的代码，来源包括已被修复漏洞的触发代码中的片段、开源项目中的模型片段、以及 ChatGPT\cite{chatgpt}等大语言模型生成的代码片段等，在这些片段的基础上进行编译，以构造测例。而为了利用已存在代码片段并进行变异操作，需要实现从 Python 代码片段到 NNSmith 中计算图表示的转换过程。
 
 综上，我们需要实现计算图表示与 Python 代码的相互转换。由于这一功能主要对测试 PyTorch 2.0 中的编译器有较大帮助、 PyTorch 框架中的配套支持较为完善、并且 PyTorch 开发团队对我们所汇报漏洞的响应较为积极，因此我们暂时只为 PyTorch 框架实现这一功能。
 
 \section{实现方法}
 
-NNSmith 的开发者近期实现了一种供模糊测试所用的计算图中间表示 GraphIR ，以将模型的生成与变异逻辑与下层具体的深度学习框架解耦。而 PyTorch 的 fx 模块 \cite{torch_fx} 亦为编译过程所需的计算图提供了一种中间表示，并实现了这种中间表示与 Python 可执行代码之间的相互转换。因此，如图 \ref{fig:convert} 所示，我们只需实现 NNSmith GraphIR 与 PyTorch fx 模块之间的相互转换，便可以实现模糊测试框架中计算图的中间表示与 Python 代码的相互转换。
+NNSmith 的开发者近期实现了一种供模糊测试所用的计算图中间表示 GraphIR ，以将模型的生成与变异逻辑与下层具体的深度学习框架解耦。而 PyTorch 的 fx 模块\cite{torch_fx}亦为编译过程所需的计算图提供了一种中间表示，并实现了这种中间表示与 Python 可执行代码之间的相互转换。因此，如图 \ref{fig:convert} 所示，我们只需实现 NNSmith GraphIR 与 PyTorch fx 模块之间的相互转换，便可以实现模糊测试框架中计算图的中间表示与 Python 代码的相互转换。
 
 \begin{figure}
     \centering
@@ -62,7 +62,8 @@ PyTorch 中的 fx 模块提供了计算图的中间表示。如对于代码 \tex
 \section{实现效果}
 
 代码 \ref{listing:nnsmith_forward} 描述了 NNSmith 中前向传播任意模型的实现（删去了为提升数值合法性的逻辑）；代码 \ref{listing:gencode} 描述了基于上述 NNSmith GraphIR 到 fx 模块中间表示的转换，再结合 fx 模块从中间表示生成代码的功能，综合出的可独立运行并可复现漏洞的程序。
-可以看出，后者前半部分清晰地描述了具体模型的结构，后半部分执行差分测试寻找漏洞。相比之下，后者便于独立运行、修改与调试，可以直接作为漏洞报告的一部分提交至开发者团队。
+其中，模型定义中的 \texttt{forward} 函数（第 \ref{listing:gencode:forward} 行）由 fx 模块生成，代码其余部分基于我们定义的模板生成，包括模型定义（第 \ref{listing:gencode:modelinit} 行）、模型权重初始化（第 \ref{listing:gencode:winit} 行）、输入构造（第 \ref{listing:gencode:inputinit} 行）、模型编译（第 \ref{listing:gencode:modelcomp} 行）、解释模式执行（第 \ref{listing:gencode:eagerrun} 行）、编译模式执行（第 \ref{listing:gencode:comprun} 行）与差分测试（第 \ref{listing:gencode:diff} 行）。
+可以看出，代码 \ref{listing:gencode} 清晰地描述了具体模型的结构，并能够执行差分测试寻找漏洞，相比前者便于独立运行、修改与调试，可以直接作为漏洞报告的一部分提交至开发者团队。
 
 \begin{listing}[]
     \caption{简化版 NNSmith 前向传播实现}
@@ -122,7 +123,7 @@ import pickle
 
 # Model definition
 class M(torch.nn.Module):
-    def __init__(self):
+    def __init__(self): |\label{listing:gencode:modelinit}|
         super().__init__()
         self.conv = torch.nn.Conv2d(
             3, 3, kernel_size=(3, 3), stride=(1, 1))
@@ -132,7 +133,7 @@ class M(torch.nn.Module):
         self.linear = torch.nn.Linear(
             in_features=62, out_features=3, bias=True)
 
-    def forward(self, x):
+    def forward(self, x): |\label{listing:gencode:forward}|
         conv = self.conv(x);  x = None
         bn = self.bn(conv);  conv = None
         linear = self.linear(bn);  bn = None
@@ -140,28 +141,28 @@ class M(torch.nn.Module):
 
 m = M()
 
-# Initialize weight
+|\label{listing:gencode:winit}|# Initialize weight
 # None
 
-# Initialize input
+|\label{listing:gencode:inputinit}|# Initialize input
 inp = [np.zeros([1, 3, 64, 64], dtype='float32')]
 
-# Compile the model
+|\label{listing:gencode:modelcomp}|# Compile the model
 opt = torch.compile(m, fullgraph=True, backend='inductor')
 
-# Eager run
+|\label{listing:gencode:eagerrun}|# Eager run
 m_out = m(*[torch.from_numpy(v).to('cpu') for v in inp])
 m_out = [v.cpu().detach() for v in m_out] # torch2numpy
 m_out = [v.resolve_conj().numpy() if v.is_conj()
     else v.numpy() for v in m_out] # torch2numpy
 
-# Compiled run
+|\label{listing:gencode:comprun}|# Compiled run
 opt_out = opt(*[torch.from_numpy(v).to('cpu') for v in inp])
 opt_out = [v.cpu().detach() for v in opt_out] # torch2numpy
 opt_out = [v.resolve_conj().numpy() if v.is_conj()
     else v.numpy() for v in opt_out] # torch2numpy
 
-# Differential testing
+|\label{listing:gencode:diff}|# Differential testing
 for i, (l, r) in enumerate(zip(m_out, opt_out)):
     np.testing.assert_allclose(l, r, rtol=1e-2, atol=1e-3,
         err_msg=f"Result mismatch @ index {i}")
