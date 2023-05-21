@@ -166,6 +166,9 @@
 % 定义所有的图片文件在 figures 子目录下
 \graphicspath{{figures/}}
 
+% force line breaks in a cell
+\usepackage{makecell}
+
 % 数学命令
 \makeatletter
 \newcommand\dif{%  % 微分符号
@@ -180,6 +183,25 @@
 
 \usepackage[outputdir=../]{minted}
 \usemintedstyle{manni}
+
+% quote
+\newcommand*\openquote{\makebox(15,-20){\scalebox{5}{``}}}
+\newcommand*\closequote{\makebox(15,-20){\scalebox{5}{''}}}
+\definecolor{azure}{rgb}{0.94, 1.0, 1.0}
+\colorlet{shadecolor}{azure}
+\newenvironment{myquote}[1]%
+  {\list{}{\leftmargin=#1\rightmargin=#1}\item[]}%
+  {\endlist}
+  
+\makeatletter
+\newif\if@right
+\def\shadequote{\@righttrue\shadequote@i}
+\def\shadequote@i{\begin{snugshade}\begin{myquote}{1cm}}
+\def\endshadequote{%
+  \if@right\hfill\fi\end{myquote}\end{snugshade}}
+\@namedef{shadequote*}{\@rightfalse\shadequote@i}
+\@namedef{endshadequote*}{\endshadequote}
+\makeatother
 
 % hyperref 宏包在最后调用
 \usepackage{hyperref}
