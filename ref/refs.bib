@@ -1,0 +1,504 @@
+@inproceedings{diffusion,
+ author = {Ho, Jonathan and Jain, Ajay and Abbeel, Pieter},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {H. Larochelle and M. Ranzato and R. Hadsell and M.F. Balcan and H. Lin},
+ pages = {6840--6851},
+ publisher = {Curran Associates, Inc.},
+ title = {Denoising Diffusion Probabilistic Models},
+ url = {https://proceedings.neurips.cc/paper_files/paper/2020/file/4c5bcfec8584af0d967f1ab10179ca4b-Paper.pdf},
+ volume = {33},
+ year = {2020}
+}
+
+@misc{chatgpt,
+	title = {{Introducing ChatGPT}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 18. May 2023]},
+	url = {https://openai.com/blog/chatgpt}
+}
+
+@article{fuzz_unix,
+author = {Miller, Barton P. and Fredriksen, Lars and So, Bryan},
+title = {An Empirical Study of the Reliability of UNIX Utilities},
+year = {1990},
+issue_date = {Dec. 1990},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {33},
+number = {12},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/96267.96279},
+doi = {10.1145/96267.96279},
+journal = {Commun. ACM},
+month = {dec},
+pages = {32–44},
+numpages = {13}
+}
+
+@INPROCEEDINGS{corbfuzz,
+  author={Shou, Chaofan and Kadron, İsmet Burak and Su, Qi and Bultan, Tevfik},
+  booktitle={2021 36th IEEE/ACM International Conference on Automated Software Engineering (ASE)}, 
+  title={CorbFuzz: Checking Browser Security Policies with Fuzzing}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={215-226},
+  doi={10.1109/ASE51524.2021.9678636}
+}
+
+@article{fuzz_graphics,
+author = {Donaldson, Alastair F. and Evrard, Hugues and Lascu, Andrei and Thomson, Paul},
+title = {Automated Testing of Graphics Shader Compilers},
+year = {2017},
+issue_date = {October 2017},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {1},
+number = {OOPSLA},
+url = {https://doi.org/10.1145/3133917},
+doi = {10.1145/3133917},
+journal = {Proc. ACM Program. Lang.},
+month = {oct},
+articleno = {93},
+numpages = {29},
+keywords = {testing, shaders, GLSL, OpenGL, GPUs, compilers}
+}
+
+@ARTICLE{fuzz_vehicle,
+  author={Moukahal, Lama J. and Zulkernine, Mohammad and Soukup, Martin},
+  journal={IEEE Transactions on Reliability}, 
+  title={Vulnerability-Oriented Fuzz Testing for Connected Autonomous Vehicle Systems}, 
+  year={2021},
+  volume={70},
+  number={4},
+  pages={1422-1437},
+  doi={10.1109/TR.2021.3112538}
+}
+
+@article{symbexe,
+author = {King, James C.},
+title = {Symbolic Execution and Program Testing},
+year = {1976},
+issue_date = {July 1976},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {19},
+number = {7},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/360248.360252},
+doi = {10.1145/360248.360252},
+journal = {Commun. ACM},
+month = {jul},
+pages = {385–394},
+numpages = {10},
+keywords = {symbolic execution, program verification, program debugging, symbolic interpretation, program proving, program testing}
+}
+
+@article{10.1145/1095430.1081750,
+author = {Sen, Koushik and Marinov, Darko and Agha, Gul},
+title = {CUTE: A Concolic Unit Testing Engine for C},
+year = {2005},
+issue_date = {September 2005},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {30},
+number = {5},
+issn = {0163-5948},
+url = {https://doi.org/10.1145/1095430.1081750},
+doi = {10.1145/1095430.1081750},
+abstract = {In unit testing, a program is decomposed into units which are collections of functions. A part of unit can be tested by generating inputs for a single entry function. The entry function may contain pointer arguments, in which case the inputs to the unit are memory graphs. The paper addresses the problem of automating unit testing with memory graphs as inputs. The approach used builds on previous work combining symbolic and concrete execution, and more specifically, using such a combination to generate test inputs to explore all feasible execution paths. The current work develops a method to represent and track constraints that capture the behavior of a symbolic execution of a unit with memory graphs as inputs. Moreover, an efficient constraint solver is proposed to facilitate incremental generation of such test inputs. Finally, CUTE, a tool implementing the method is described together with the results of applying CUTE to real-world examples of C code.},
+journal = {SIGSOFT Softw. Eng. Notes},
+month = {sep},
+pages = {263–272},
+numpages = {10},
+keywords = {unit testing, random testing, testing C programs, explicit path model-checking, data structure testing, concolic testing}
+}
+
+@article{10.1145/1064978.1065036,
+author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
+title = {DART: Directed Automated Random Testing},
+year = {2005},
+issue_date = {June 2005},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {40},
+number = {6},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/1064978.1065036},
+doi = {10.1145/1064978.1065036},
+abstract = {We present a new tool, named DART, for automatically testing software that combines three main techniques: (1) automated extraction of the interface of a program with its external environment using static source-code parsing; (2) automatic generation of a test driver for this interface that performs random testing to simulate the most general environment the program can operate in; and (3) dynamic analysis of how the program behaves under random testing and automatic generation of new test inputs to direct systematically the execution along alternative program paths. Together, these three techniques constitute Directed Automated Random Testing, or DART for short. The main strength of DART is thus that testing can be performed completely automatically on any program that compiles -- there is no need to write any test driver or harness code. During testing, DART detects standard errors such as program crashes, assertion violations, and non-termination. Preliminary experiments to unit test several examples of C programs are very encouraging.},
+journal = {SIGPLAN Not.},
+month = {jun},
+pages = {213–223},
+numpages = {11},
+keywords = {random testing, automated test generation, interfaces, software testing, program verification}
+}
+
+@inproceedings{dart,
+author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
+title = {DART: Directed Automated Random Testing},
+year = {2005},
+isbn = {1595930566},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1065010.1065036},
+doi = {10.1145/1065010.1065036},
+booktitle = {Proceedings of the 2005 ACM SIGPLAN Conference on Programming Language Design and Implementation},
+pages = {213–223},
+numpages = {11},
+keywords = {software testing, random testing, interfaces, automated test generation, program verification},
+location = {Chicago, IL, USA},
+series = {PLDI '05}
+}
+
+@inproceedings{cute,
+author = {Sen, Koushik and Marinov, Darko and Agha, Gul},
+title = {CUTE: A Concolic Unit Testing Engine for C},
+year = {2005},
+isbn = {1595930140},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1081706.1081750},
+doi = {10.1145/1081706.1081750},
+booktitle = {Proceedings of the 10th European Software Engineering Conference Held Jointly with 13th ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+pages = {263–272},
+numpages = {10},
+keywords = {unit testing, data structure testing, testing C programs, concolic testing, random testing, explicit path model-checking},
+location = {Lisbon, Portugal},
+series = {ESEC/FSE-13}
+}
+
+
+@inproceedings{predoo,
+author = {Zhang, Xufan and Sun, Ning and Fang, Chunrong and Liu, Jiawei and Liu, Jia and Chai, Dong and Wang, Jiang and Chen, Zhenyu},
+title = {Predoo: Precision Testing of Deep Learning Operators},
+year = {2021},
+isbn = {9781450384599},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3460319.3464843},
+doi = {10.1145/3460319.3464843},
+booktitle = {Proceedings of the 30th ACM SIGSOFT International Symposium on Software Testing and Analysis},
+pages = {400–412},
+numpages = {13},
+keywords = {floating-point operation, precision testing, deep learning operators},
+location = {Virtual, Denmark},
+series = {ISSTA 2021}
+}
+
+@inproceedings{freefuzz,
+author = {Wei, Anjiang and Deng, Yinlin and Yang, Chenyuan and Zhang, Lingming},
+title = {Free Lunch for Testing: Fuzzing Deep-Learning Libraries from Open Source},
+year = {2022},
+isbn = {9781450392211},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3510003.3510041},
+doi = {10.1145/3510003.3510041},
+booktitle = {Proceedings of the 44th International Conference on Software Engineering},
+pages = {995–1007},
+numpages = {13},
+location = {Pittsburgh, Pennsylvania},
+series = {ICSE '22}
+}
+
+@inproceedings{deeprel,
+author = {Deng, Yinlin and Yang, Chenyuan and Wei, Anjiang and Zhang, Lingming},
+title = {Fuzzing Deep-Learning Libraries via Automated Relational API Inference},
+year = {2022},
+isbn = {9781450394130},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3540250.3549085},
+doi = {10.1145/3540250.3549085},
+booktitle = {Proceedings of the 30th ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+pages = {44–56},
+numpages = {13},
+keywords = {Oracle Inference, Differential Testing, Fuzz Testing, Deep Learning},
+location = {Singapore, Singapore},
+series = {ESEC/FSE 2022}
+}
+
+@inproceedings{cradle,
+author = {Pham, Hung Viet and Lutellier, Thibaud and Qi, Weizhen and Tan, Lin},
+title = {CRADLE: Cross-Backend Validation to Detect and Localize Bugs in Deep Learning Libraries},
+year = {2019},
+publisher = {IEEE Press},
+url = {https://doi.org/10.1109/ICSE.2019.00107},
+doi = {10.1109/ICSE.2019.00107},
+booktitle = {Proceedings of the 41st International Conference on Software Engineering},
+pages = {1027–1038},
+numpages = {12},
+keywords = {software testing, bugs detection, deep learning software testing, cross-implementation testing},
+location = {Montreal, Quebec, Canada},
+series = {ICSE '19}
+}
+
+@inproceedings{lemon,
+author = {Wang, Zan and Yan, Ming and Chen, Junjie and Liu, Shuang and Zhang, Dongdi},
+title = {Deep Learning Library Testing via Effective Model Generation},
+year = {2020},
+isbn = {9781450370431},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3368089.3409761},
+doi = {10.1145/3368089.3409761},
+booktitle = {Proceedings of the 28th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+pages = {788–799},
+numpages = {12},
+keywords = {Search-based Software Testing, Library Testing, Mutation, Deep Learning Testing, Model Generation},
+location = {Virtual Event, USA},
+series = {ESEC/FSE 2020}
+}
+
+@inproceedings{graphfuzzer,
+author = {Luo, Weisi and Chai, Dong and Run, Xiaoyue and Wang, Jiang and Fang, Chunrong and Chen, Zhenyu},
+title = {Graph-Based Fuzz Testing for Deep Learning Inference Engines},
+year = {2021},
+isbn = {9781450390859},
+publisher = {IEEE Press},
+url = {https://doi.org/10.1109/ICSE43902.2021.00037},
+doi = {10.1109/ICSE43902.2021.00037},
+booktitle = {Proceedings of the 43rd International Conference on Software Engineering},
+pages = {288–299},
+numpages = {12},
+keywords = {Monte Carlo Tree Search, Deep Learning Inference Engine, Deep Learning Models, Operator-Level Coverage, Graph Theory},
+location = {Madrid, Spain},
+series = {ICSE '21}
+}
+
+@inproceedings{muffin,
+author = {Gu, Jiazhen and Luo, Xuchuan and Zhou, Yangfan and Wang, Xin},
+title = {Muffin: Testing Deep Learning Libraries via Neural Architecture Fuzzing},
+year = {2022},
+isbn = {9781450392211},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3510003.3510092},
+doi = {10.1145/3510003.3510092},
+booktitle = {Proceedings of the 44th International Conference on Software Engineering},
+pages = {1418–1430},
+numpages = {13},
+keywords = {library testing, deep learning testing, model generation, fuzzing},
+location = {Pittsburgh, Pennsylvania},
+series = {ICSE '22}
+}
+
+@inproceedings{nnsmith,
+author = {Liu, Jiawei and Lin, Jinkun and Ruffy, Fabian and Tan, Cheng and Li, Jinyang and Panda, Aurojit and Zhang, Lingming},
+title = {NNSmith: Generating Diverse and Valid Test Cases for Deep Learning Compilers},
+year = {2023},
+isbn = {9781450399166},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3575693.3575707},
+doi = {10.1145/3575693.3575707},
+booktitle = {Proceedings of the 28th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2},
+pages = {530–543},
+numpages = {14},
+keywords = {Deep Learning Compilers, Compiler Testing, Fuzzing},
+location = {Vancouver, BC, Canada},
+series = {ASPLOS 2023}
+}
+
+@misc{torch_ops_doc,
+	title = {{TorchScript Builtins {\ifmmode---\else\textemdash\fi} PyTorch 2.0 documentation}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 12. May 2023]},
+	url = {https://pytorch.org/docs/stable/jit_builtin_functions.html}
+}
+
+@misc{tf_ops_doc,
+	author = {tensorflow},
+	title = {{tensorflow}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 12. May 2023]},
+	url = {https://github.com/tensorflow/tensorflow/blob/6935c8f706dde1906e388b3142906c92cdcc36db/tensorflow/compiler/tf2xla/g3doc/cpu_supported_ops.md}
+}
+
+@misc{torch_conv1d,
+	title = {{Conv1d {\ifmmode---\else\textemdash\fi} PyTorch 2.0 documentation}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 14. May 2023]},
+	url = {https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html}
+}
+
+@article{daikon,
+   author = {Michael D. Ernst and Jeff H. Perkins and Philip J. Guo and
+	Stephen McCamant and Carlos Pacheco and Matthew S. Tschantz and
+	Chen Xiao},
+   title = {The {Daikon} system for dynamic detection of likely invariants},
+   journal = {Science of Computer Programming},
+   volume = {69},
+   number = {1--3},
+   pages = {35--45},
+   month = dec,
+   year = {2007}
+}
+
+@misc{torch_f_conv2d,
+	title = {{torch.nn.functional.conv2d {\ifmmode---\else\textemdash\fi} PyTorch 2.0 documentation}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 14. May 2023]},
+	url = {https://pytorch.org/docs/stable/generated/torch.nn.functional.conv2d.html}
+}
+
+@misc{python_partial,
+	title = {{functools {\ifmmode---\else\textemdash\fi} Higher-order functions and operations on callable objects}},
+	journal = {Python documentation},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 14. May 2023]},
+	url = {https://docs.python.org/3/library/functools.html#functools.partial}
+}
+
+@misc{pt2_release,
+	title = {{PyTorch}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 18. May 2023]},
+	url = {https://pytorch.org/blog/pytorch-2.0-release}
+}
+
+@misc{torch_fx,
+	title = {{torch.fx {\ifmmode---\else\textemdash\fi} PyTorch 2.0 documentation}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 18. May 2023]},
+	url = {https://pytorch.org/docs/stable/fx.html}
+}
+
+@misc{clang14_cov,
+	title = {{Source-based Code Coverage {\ifmmode---\else\textemdash\fi} Clang 14.0.0 documentation}},
+	year = {2022},
+	month = mar,
+	note = {[Online; accessed 19. May 2023]},
+	url = {https://releases.llvm.org/14.0.0/tools/clang/docs/SourceBasedCodeCoverage.html}
+}
+
+@misc{gcov,
+	title = {{Gcov (Using the GNU Compiler Collection (GCC))}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://gcc.gnu.org/onlinedocs/gcc/Gcov.html}
+}
+
+@misc{pytorch_tests,
+	author = {pytorch},
+	title = {{pytorch}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 19. May 2023]},
+	url = {https://github.com/pytorch/pytorch/wiki/Running-and-writing-tests}
+}
+
+@misc{tf_tests,
+	title = {{TensorFlow testing best practices}},
+	journal = {TensorFlow},
+	year = {2021},
+	month = jan,
+	note = {[Online; accessed 19. May 2023]},
+	url = {https://www.tensorflow.org/community/contribute/tests}
+}
+
+@misc{tf_doctests,
+	title = {{Contribute to the TensorFlow API documentation}},
+	journal = {TensorFlow},
+	year = {2022},
+	month = aug,
+	note = {[Online; accessed 19. May 2023]},
+	url = {https://www.tensorflow.org/community/contribute/docs_ref}
+}
+
+@article{tzer,
+author = {Liu, Jiawei and Wei, Yuxiang and Yang, Sen and Deng, Yinlin and Zhang, Lingming},
+title = {Coverage-Guided Tensor Compiler Fuzzing with Joint IR-Pass Mutation},
+year = {2022},
+issue_date = {April 2022},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {6},
+number = {OOPSLA1},
+url = {https://doi.org/10.1145/3527317},
+doi = {10.1145/3527317},
+month = {apr},
+articleno = {73},
+numpages = {26},
+keywords = {Fuzzing, Compiler Testing, Machine Learning Systems}
+}
+
+@misc{ngimel_comments,
+	author = {pytorch},
+	title = {{pytorch}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 20. May 2023]},
+	url = {https://github.com/pytorch/pytorch/issues/93357#issuecomment-1412497745}
+}
+
+@misc{pti93365,
+	author = {pytorch},
+	title = {{pytorch}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/pytorch/pytorch/issues/93365}
+}
+
+@misc{pti95181,
+	author = {pytorch},
+	title = {{pytorch}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/pytorch/pytorch/issues/95181}
+}
+
+@misc{torch_promarg,
+	author = {pytorch},
+	title = {{pytorch}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/pytorch/pytorch/blob/351c2ea2fbb09add93980e2942435f31b114047c/torch/_prims_common/wrappers.py#L123}
+}
+
+@misc{torch_primmul,
+	author = {pytorch},
+	title = {{pytorch}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/pytorch/pytorch/blob/4833e47feb1781ccb69945a6dffe01e040269d9f/torch/_refs/__init__.py#L1607}
+}
+
+@misc{torch_primsub,
+	author = {pytorch},
+	title = {{pytorch}},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/pytorch/pytorch/blob/4833e47feb1781ccb69945a6dffe01e040269d9f/torch/_refs/__init__.py#L1609}
+}
+
+@misc{pti95181_fix,
+	author = {cyyever},
+	title = {{pytorch{$\_$}private}},
+	journal = {GitHub},
+	year = {2023},
+	month = may,
+	note = {[Online; accessed 21. May 2023]},
+	url = {https://github.com/cyyever/pytorch_private/commit/7cd6031c4d0f7935d941e4c2d527d9ac0df000e2}
+}
+

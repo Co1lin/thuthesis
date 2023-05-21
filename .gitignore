@@ -1,4 +1,22 @@
+## distribution files
 .DS_Store
+package-lock.json
+node_modules/
+dist/
+thuthesis*.zip
+thuthesis-ctan/
+
+## generated files:
+dtx-style.sty
+# thuthesis.cls
+thuthesis.pdf
+thuthesis-example.pdf
+spine.pdf
+*.hd
+
+## test files:
+build/
+testfiles/**/*.pdf
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
@@ -13,6 +31,10 @@
 *.cb
 *.cb2
 .*.lb
+!testfiles/**/*.aux
+!testfiles/**/*.toc
+!testfiles/**/*.lof
+!testfiles/**/*.lot
 
 ## Intermediate documents:
 *.dvi
@@ -111,8 +133,6 @@ acs-*.bib
 *.glo
 *.gls
 *.glsdefs
-*.lzo
-*.lzs
 
 # uncomment this for glossaries-extra (will ignore makeindex's style files!)
 # *.ist
@@ -151,6 +171,10 @@ acs-*.bib
 *.idx
 *.ilg
 *.ind
+
+# markdown
+_markdown_*/
+*.markdown.lua
 
 # minitoc
 *.maf
@@ -211,6 +235,9 @@ pythontex-files-*/
 *.md5
 *.auxlock
 
+# titletoc
+*.ptc
+
 # todonotes
 *.tdo
 
@@ -255,14 +282,8 @@ TSWLatexianTemp*
 # Kile
 *.backup
 
-# gummi
-.*.swp
-
 # KBibTeX
 *~[0-9]*
-
-# TeXnicCenter
-*.tps
 
 # auto folder when using emacs and auctex
 ./auto/*
@@ -274,5 +295,4 @@ TSWLatexianTemp*
 # standalone packages
 *.sta
 
-# Makeindex log files
-*.lpz
+yarn.lock
