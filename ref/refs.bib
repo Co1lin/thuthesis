@@ -95,46 +95,6 @@ numpages = {10},
 keywords = {symbolic execution, program verification, program debugging, symbolic interpretation, program proving, program testing}
 }
 
-@article{10.1145/1095430.1081750,
-author = {Sen, Koushik and Marinov, Darko and Agha, Gul},
-title = {CUTE: A Concolic Unit Testing Engine for C},
-year = {2005},
-issue_date = {September 2005},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {30},
-number = {5},
-issn = {0163-5948},
-url = {https://doi.org/10.1145/1095430.1081750},
-doi = {10.1145/1095430.1081750},
-abstract = {In unit testing, a program is decomposed into units which are collections of functions. A part of unit can be tested by generating inputs for a single entry function. The entry function may contain pointer arguments, in which case the inputs to the unit are memory graphs. The paper addresses the problem of automating unit testing with memory graphs as inputs. The approach used builds on previous work combining symbolic and concrete execution, and more specifically, using such a combination to generate test inputs to explore all feasible execution paths. The current work develops a method to represent and track constraints that capture the behavior of a symbolic execution of a unit with memory graphs as inputs. Moreover, an efficient constraint solver is proposed to facilitate incremental generation of such test inputs. Finally, CUTE, a tool implementing the method is described together with the results of applying CUTE to real-world examples of C code.},
-journal = {SIGSOFT Softw. Eng. Notes},
-month = {sep},
-pages = {263–272},
-numpages = {10},
-keywords = {unit testing, random testing, testing C programs, explicit path model-checking, data structure testing, concolic testing}
-}
-
-@article{10.1145/1064978.1065036,
-author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
-title = {DART: Directed Automated Random Testing},
-year = {2005},
-issue_date = {June 2005},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {40},
-number = {6},
-issn = {0362-1340},
-url = {https://doi.org/10.1145/1064978.1065036},
-doi = {10.1145/1064978.1065036},
-abstract = {We present a new tool, named DART, for automatically testing software that combines three main techniques: (1) automated extraction of the interface of a program with its external environment using static source-code parsing; (2) automatic generation of a test driver for this interface that performs random testing to simulate the most general environment the program can operate in; and (3) dynamic analysis of how the program behaves under random testing and automatic generation of new test inputs to direct systematically the execution along alternative program paths. Together, these three techniques constitute Directed Automated Random Testing, or DART for short. The main strength of DART is thus that testing can be performed completely automatically on any program that compiles -- there is no need to write any test driver or harness code. During testing, DART detects standard errors such as program crashes, assertion violations, and non-termination. Preliminary experiments to unit test several examples of C programs are very encouraging.},
-journal = {SIGPLAN Not.},
-month = {jun},
-pages = {213–223},
-numpages = {11},
-keywords = {random testing, automated test generation, interfaces, software testing, program verification}
-}
-
 @inproceedings{dart,
 author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
 title = {DART: Directed Automated Random Testing},
