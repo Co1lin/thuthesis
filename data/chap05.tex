@@ -61,7 +61,7 @@
 我们限定生成测例的总时间为 4 小时，与前人工作\cite{nnsmith,tzer}保持一致。从后续实验可以看出， 4 小时足够让实验结果基本收敛。
 
 首先，我们考虑如何选取计算图的大小，即图中算子的数量。
-图 \ref{} 为 HybridGen-r 算法在 PyTorch 上的消融实验，评价指标（纵轴）为覆盖率，节点数目分别为 1、5、9、13 ，4 小时内每种节点数下生成的模型数量标注在图例中。
+图 \ref{fig:covexp:size} 为 HybridGen-r 算法在 PyTorch 上的消融实验，评价指标（纵轴）为覆盖率，节点数目分别为 1、5、9、13 ，4 小时内每种节点数下生成的合法模型数量标注在图例中。
 可以看出，过小的计算图（如单算子计算图）虽然生成速度很快，但会因为无法触发编译器中的图层面优化逻辑（如多算子融合）而只能达到较低的覆盖率，这体现了图层面的模糊测试相比单算子模糊测试的优越性；但计算图大小在增长到一定程度后再继续增大则对提高覆盖率无益，这主要是因为编译器中的优化逻辑一般只涉及到局部几个算子，而不会对较大的子图做优化。
 由于目前没有实现在保证漏洞可复现的同时最小化测例的算法，对于较大的计算图构成的测例，发现漏洞后人工进行最小化时的工作量较大。
 所以，我们最终选取 5 作为计算图的大小来进行后续实验，以平衡覆盖率效果与人工调试的难度。
@@ -89,18 +89,34 @@
 
 然后，我们分别在两种框架上对三种计算图生成算法进行源码分支覆盖率评测，以比较不同算法所生成测例的多样性，和基于它们的模糊测试对目标测试的充分程度。
 在具体实现上，我们用自编译的为了统计覆盖率而进行了插桩的深度学习框架，对上一步实验中在 4 小时内生成的所有测例用编译执行模式进行重放。
-图 \ref{covexp} 表明，在两种框架上， HybridGen-r 均能显著超过 NNSmith ，提升幅度达 tt\% (PyTorch) / ff\% (TensorFlow)，证明了引入具体算子做计算图生成的有效性。
-而对于将具体算子抽象化以提高张量形状多样性的 HybridGen ，则可以进一步提高分支覆盖率，相较 NNSmith 提升幅度达 tt\% (PyTorch) / ff\% (TensorFlow)，相较 HybridGen-r 提升幅度达 tt\% (PyTorch) / ff\% (TensorFlow) ，证明了偏算子这一概念可以支撑自动推导算法使深度学习框架与编译器的模糊测试更加充分，为未来工作提供了实现基础与想象空间。
+图 \ref{fig:covexp} 表明，在两种框架上， HybridGen-r 均能显著超过 NNSmith ，提升幅度达 13.5\% (PyTorch) / 20.9\% (TensorFlow)，证明了引入具体算子做计算图生成的有效性。
+而对于将具体算子抽象化以提高张量形状多样性的 HybridGen ，则可以进一步提高分支覆盖率，相较 NNSmith 提升幅度达 14.9\% (PyTorch) / 23.5\% (TensorFlow)，相较 HybridGen-r 提升幅度达 1.3\% (PyTorch) / 2.2\% (TensorFlow) ，证明了偏算子这一概念可以支撑自动推导算法使深度学习框架与编译器的模糊测试更加充分，为未来工作提供了实现基础与想象空间。
 
-% \begin{figure}
-%     \label{fig:covexp}
-%     \centering
-%     \subcaptionbox{PyTorch\label{fig:covexp:pt}}
-%         {\includegraphics[width=0.40\linewidth]{}}
-%     \subcaptionbox{TensorFlow\label{fig:covexp:tf}}
-%         {\includegraphics[width=0.40\linewidth]{}}
-%     \caption{模糊测试 4 小时的分支覆盖率变化}
-% \end{figure}
+\begin{figure}
+    \centering
+    \subcaptionbox{PyTorch\label{fig:covexp:pt}}
+        {\includegraphics[width=0.48\linewidth]{figures/pt_cov.pdf}}
+    \subcaptionbox{TensorFlow\label{fig:covexp:tf}}
+        {\includegraphics[width=0.48\linewidth]{figures/tf_cov.pdf}}
+    \subcaptionbox{模型大小的影响\label{fig:covexp:size}}
+        {\includegraphics[width=0.48\linewidth]{figures/size_cov.pdf}}
+    \caption{模糊测试 4 小时的分支覆盖率变化}
+    \label{fig:covexp}
+\end{figure}
+
+% PyTorch:
+% ----> max cov 41120.0 + max tests 639500
+% ----> max cov 46654.0 + max tests 409900  1.1345817121
+% ----> max cov 47266.0 + max tests 206500  1.1494649805, 1.0131178463
+% TF:
+% ----> max cov 29303.0 + max tests 140000
+% ----> max cov 35426.0 + max tests 132000  1.2089547145
+% ----> max cov 36203.0 + max tests 109000  1.2354707709, 1.0219330435
+% Size:
+% ----> max cov 46404.0 + max tests 739500
+% ----> max cov 47266.0 + max tests 206500
+% ----> max cov 47275.0 + max tests 106800
+% ----> max cov 47332.0 + max tests 76400
 
 \section{漏洞寻找}
 
