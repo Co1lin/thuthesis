@@ -7,15 +7,23 @@
 
 基于上文的介绍与分析，对单个算子的模糊测试不能触发深度学习编译器中至关重要的图层面优化，而现有图层面的模糊测试工作不能兼顾图的多样性与框架的自动化程度。面对这些不足，本文试图提出一套改进策略，在避免大量人工劳动的前提下将大量 NNSmith 未覆盖到的算子自动引入到计算图生成中，以对深度学习编译器进行更充分的测试。
 
-本文提出的框架如图？所示，主要可以分为以下三部分：
+\begin{figure}
+    \centering
+    % \includesvg[width=1.\linewidth]{figures/overview.svg}
+    \includegraphics[width=1.\linewidth]{figures/overview.pdf}
+    \caption{基于混合算子计算图生成的模糊测试框架概览}
+    \label{fig:overview}
+\end{figure}
+
+本文提出的框架如图 \ref{fig:overview} 所示，主要可以分为以下三部分：
 \begin{enumerate}
-    \item 具体算子数据集的构建。相比 NNSmith 需要人工加入每个符号化算子，即为每个算子编写符号化规则与约束，以支持计算图的符号化支持，本文通过从真实世界代码中收集大量具体化算子来自动构建算子集合，提高了构建算子集合这一部分的自动化程度。
-    \item 混合算子计算图生成算法。相比 NNSmith 先通过符号化生成算法生成完全符号化的计算图，最后一次性调用 SMT 求解器求解累积的全部约束，为每个符号赋值，从而具体化计算图，本文类比“实际执行”与“符号执行”结合的“混合执行”方法，设计了具体算子与符号算子混合的计算图生成算法，以利用种类多样的具体算子，来提高模型的多样性。
+    \item 具体算子数据集构建。相比 NNSmith 需要人工加入每个符号化算子，即为每个算子编写符号化规则与约束，以支持计算图的符号化支持，本文通过从真实世界代码中收集大量具体化算子来自动构建算子集合，提高了构建算子集合这一部分的自动化程度。
+    \item 基于混合算子计算图生成的测例生成。相比 NNSmith 先通过符号化生成算法生成完全符号化的计算图，最后一次性调用 SMT 求解器求解累积的全部约束，为每个符号赋值，从而具体化计算图，本文类比“实际执行”与“符号执行”结合的“混合执行”方法，设计了具体算子与符号算子混合的计算图生成算法，以利用种类多样的具体算子，来提高模型的多样性。
     \item 差分测试与漏洞寻找。此部分与 NNSmith 寻找漏洞的方式相同：一是通过直接运行测例隐式地寻找潜在漏洞，二是通过应用差分测试显式地寻找潜在漏洞。
     % 对于某测例，如果在关闭编译与开启编译中的任一模式不能顺利执行并产生输出结果，则意味着寻找到潜在漏洞；如果在两种模式下均能顺利执行，则应用差分测试，比较两种模式下的执行结果在合理的误差范围内是否一致，如果不一致则亦意味着寻找到了潜在漏洞。
 \end{enumerate}
 
-\section{具体算子数据集的构建}
+\section{具体算子数据集构建}
 
 “具体算子”的概念是相对于 NNSmith 中的“符号化算子”而言的。 NNSmith 首先生成符号化计算图，图中所有张量的形状均未定，因此所有与之相关的量都需要用符号暂时地进行表示。如某符号化线性层算子可表示为： \texttt{Linear(in\_features=s\_in, out\_features=s\_out)} ，其可以接受形状为 \texttt{[s\_0, s\_in]} 的张量输入，并产生形状为 \texttt{[s\_out, s\_1]} 的张量输出。
 而具体算子指的是所有属性和张量形状均确定的算子，如某具体线性层算子： \texttt{Linear(in\_features=32, out\_features=64)} ，其可以接受形状为 \texttt{[4, 32]} 的张量输入，并产生形状为 \texttt{[4, 64]} 的张量输出。
@@ -135,7 +143,7 @@ F: &\{(T^\text{in}, A)\} \rightarrow \{T^\text{out}\} ~, \text{where} \\
 基于上述定义，根据函数的定义可知，对于某个合法的输入组合 $(T^\text{in}, A)$ ，一个具体算子必须能够将其唯一确定地映射到一个输出组合 $T^\text{out}$ 上。
 然而，由于输入、输出中我们都将原先具体的张量抽象化为了形状与数据类型的二元组，因此在执行具体算子时，我们需要先根据该信息随机生成具体的张量作为接口的输入，此处引入了不确定性，进而导致并非所有 \ref{sec:collect} 中收集到的调用记录均可被建模为具体算子。
 例如， \texttt{torch.tensor([1,2], dtype=torch.int64)} 与 \texttt{torch.tensor([1,3], dtype=torch.int64)} 对应的张量元信息均为 \texttt{([2], int64)} ，但 \texttt{torch.bincount} 接受前者作为输入时输出张量的元信息为 \texttt{([3], int64)} ，而对于后者则为 \texttt{([4], int64)} ， \texttt{torch.bincount} 对张量数值的敏感性产生的这种不一致性违反了函数的定义，因而不能被建模为具体算子。
-因此，对于每条收集到的调用记录，我们需要检查其接口对张量元信息的映射行为是否独立于张量中具体的数值。为了实现简便，我们根据输入张量的元信息随机生成张量数值上各不相同的多组输入，分别执行，并比较输出张量的元信息是否始终保持一致。 \ref{} 中的实验表明，这一简单的筛选策略可以达到良好的效果，否则计算图的生成无法达到较高的合法率。
+因此，对于每条收集到的调用记录，我们需要检查其接口对张量元信息的映射行为是否独立于张量中具体的数值。为了实现简便，我们根据输入张量的元信息随机生成张量数值上各不相同的多组输入，分别执行，并比较输出张量的元信息是否始终保持一致。 \ref{sec:exp_gen} 中的实验表明，这一简单的筛选策略可以达到良好的效果，否则计算图的生成无法达到较高的合法率。
 
 此外，由于我们最终使用差分测试寻找潜在漏洞，因此需要保证对于同样的输入，具体算子在任意次执行中均能给出确定一致的输出（此处的输入、输出包括了张量的具体数值，而不仅仅是元信息），而不带有随机性。例如， \texttt{torch.nn.functional.dropout} 在属性 $p$ （置零概率）不为 0 或 1 时便不满足此确定性要求。
 
@@ -225,7 +233,7 @@ NNSmith 中为每个算子编写了两类规则，即张量形状变换规则与
 \end{itemize}
 对于满足上述规则的偏算子，其规则与约束推导相比原接口更加容易。外部合作者仅实现了支持简单语法的推导算法，就可以为大部分算子推导符号化规则与约束，并最终提高模糊测试的覆盖率。
 
-\section{混合算子计算图生成算法}
+\section{混合算子计算图生成}
 
 类比混合执行结合具体执行与符号执行的思想，我们改进 NNSmith 中的计算图生成算法，设计可以同时利用 NNSmith 中的符号化算子与本文工作中的具体算子的混合算子计算图生成算法。
 
@@ -287,101 +295,3 @@ NNSmith 中为每个算子编写了两类规则，即张量形状变换规则与
 \section{差分测试与漏洞寻找}
 
 与 NNSmith 相同，对每个从计算图生成算法构造出的测例，我们分别在不启用编译器的解释执行模式，和启用编译器的图执行模式下运行，运用差分测试比较其结果。若在任一模式下执行失败，则隐式地寻找到漏洞。若在两种模式下均成功执行，但结果的差距不在误差允许范围内，则显式地寻找到漏洞。
-
-\iffalse
-\chapter{数学符号和公式}
-
-\section{数学符号}
-
-中文论文的数学符号默认遵循 GB/T 3102.11—1993《物理科学和技术中使用的数学符号》
-\footnote{原 GB 3102.11—1993，自 2017 年 3 月 23 日起，该标准转为推荐性标准。}。
-该标准参照采纳 ISO 31-11:1992 \footnote{目前已更新为 ISO 80000-2:2019。}，
-但是与 \TeX{} 默认的美国数学学会（AMS）的符号习惯有所区别。
-具体地来说主要有以下差异：
-\begin{enumerate}
-  \item 大写希腊字母默认为斜体，如
-    \begin{equation*}
-      \Gamma \Delta \Theta \Lambda \Xi \Pi \Sigma \Upsilon \Phi \Psi \Omega.
-    \end{equation*}
-    注意有限增量符号 $\increment$ 固定使用正体，模板提供了 \cs{increment} 命令。
-  \item 小于等于号和大于等于号使用倾斜的字形 $\le$、$\ge$。
-  \item 积分号使用正体，比如 $\int$、$\oint$。
-  \item
-    偏微分符号 $\partial$ 使用正体。
-  \item
-    省略号 \cs{dots} 按照中文的习惯固定居中，比如
-    \begin{equation*}
-      1, 2, \dots, n \quad 1 + 2 + \dots + n.
-    \end{equation*}
-  \item
-    实部 $\Re$ 和虚部 $\Im$ 的字体使用罗马体。
-\end{enumerate}
-
-以上数学符号样式的差异可以在模板中统一设置。
-另外国标还有一些与 AMS 不同的符号使用习惯，需要用户在写作时进行处理：
-\begin{enumerate}
-  \item 数学常数和特殊函数名用正体，如
-    \begin{equation*}
-      \uppi = 3.14\dots; \quad
-      \symup{i}^2 = -1; \quad
-      \symup{e} = \lim_{n \to \infty} \left( 1 + \frac{1}{n} \right)^n.
-    \end{equation*}
-  \item 微分号使用正体，比如 $\dif y / \dif x$。
-  \item 向量、矩阵和张量用粗斜体（\cs{symbf}），如 $\symbf{x}$、$\symbf{\Sigma}$、$\symbfsf{T}$。
-  \item 自然对数用 $\ln x$ 不用 $\log x$。
-\end{enumerate}
-
-
-英文论文的数学符号使用 \TeX{} 默认的样式。
-如果有必要，也可以通过设置 \verb|math-style| 选择数学符号样式。
-
-关于量和单位推荐使用
-\href{http://mirrors.ctan.org/macros/latex/contrib/siunitx/siunitx.pdf}{\pkg{siunitx}}
-宏包，
-可以方便地处理希腊字母以及数字与单位之间的空白，
-比如：
-\SI{6.4e6}{m}，
-\SI{9}{\micro\meter}，
-\si{kg.m.s^{-1}}，
-\SIrange{10}{20}{\degreeCelsius}。
-
-
-
-\section{数学公式}
-
-数学公式可以使用 \env{equation} 和 \env{equation*} 环境。
-注意数学公式的引用应前后带括号，通常使用 \cs{eqref} 命令，比如式\eqref{eq:example}。
-\begin{equation}
-  \frac{1}{2 \uppi \symup{i}} \int_\gamma f = \sum_{k=1}^m n(\gamma; a_k) \mathscr{R}(f; a_k).
-  \label{eq:example}
-\end{equation}
-
-多行公式尽可能在“=”处对齐，推荐使用 \env{align} 环境。
-\begin{align}
-  a & = b + c + d + e \\
-    & = f + g
-\end{align}
-
-
-
-\section{数学定理}
-
-定理环境的格式可以使用 \pkg{amsthm} 或者 \pkg{ntheorem} 宏包配置。
-用户在导言区载入这两者之一后，模板会自动配置 \env{thoerem}、\env{proof} 等环境。
-
-\begin{theorem}[Lindeberg--Lévy 中心极限定理]
-  设随机变量 $X_1, X_2, \dots, X_n$ 独立同分布， 且具有期望 $\mu$ 和有限的方差 $\sigma^2 \ne 0$，
-  记 $\bar{X}_n = \frac{1}{n} \sum_{i+1}^n X_i$，则
-  \begin{equation}
-    \lim_{n \to \infty} P \left(\frac{\sqrt{n} \left( \bar{X}_n - \mu \right)}{\sigma} \le z \right) = \Phi(z),
-  \end{equation}
-  其中 $\Phi(z)$ 是标准正态分布的分布函数。
-\end{theorem}
-\begin{proof}
-  Trivial.
-\end{proof}
-
-同时模板还提供了 \env{assumption}、\env{definition}、\env{proposition}、
-\env{lemma}、\env{theorem}、\env{axiom}、\env{corollary}、\env{exercise}、
-\env{example}、\env{remar}、\env{problem}、\env{conjecture} 这些相关的环境。
-\fi
