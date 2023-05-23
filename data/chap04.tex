@@ -65,6 +65,7 @@ PyTorch 中的 fx 模块提供了计算图的中间表示。如对于代码 \tex
 代码 \ref{listing:nnsmith_forward} 描述了 NNSmith 中前向传播任意模型的实现（删去了为提升数值合法性的逻辑）；代码 \ref{listing:gencode} 描述了基于上述 NNSmith GraphIR 到 fx 模块中间表示的转换，再结合 fx 模块从中间表示生成代码的功能，综合出的可独立运行并可复现漏洞的程序。
 其中，模型定义中的 \texttt{forward} 函数（第 \ref{listing:gencode:forward} 行）由 fx 模块生成，代码其余部分基于我们定义的模板生成，包括模型定义（第 \ref{listing:gencode:modelinit} 行）、模型权重初始化（第 \ref{listing:gencode:winit} 行）、输入构造（第 \ref{listing:gencode:inputinit} 行）、模型编译（第 \ref{listing:gencode:modelcomp} 行）、解释模式执行（第 \ref{listing:gencode:eagerrun} 行）、编译模式执行（第 \ref{listing:gencode:comprun} 行）与差分测试（第 \ref{listing:gencode:diff} 行）。
 可以看出，代码 \ref{listing:gencode} 清晰地描述了具体模型的结构，并能够执行差分测试寻找漏洞，相比前者便于独立运行、修改与调试，可以直接作为漏洞报告的一部分提交至开发者团队。
+并且，\ref{sec:bugs_finding} 中为 PyTorch 2.0 寻找到的漏洞绝大部分只能被这种为每个测例单独综合出的程序触发，而不能被 NNSmith 中的通用前向传播函数触发，因此本章工作对漏洞挖掘也具有实际意义。
 
 \begin{listing}[]
     \caption{简化版 NNSmith 前向传播实现}
