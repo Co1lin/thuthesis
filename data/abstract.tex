@@ -32,18 +32,20 @@
 \end{abstract}
 
 \begin{abstract*}
-  Included in an abstract should be description of research topic and research objective, brief introduction to methodology and research process, and summary of conclusion and contributions of the research.
-  An abstract should be characterized by independence and clarity and carry identical information with the dissertation.
-  It should be such that the general idea and major contributions of the dissertation are conveyed without reading the dissertation.
+Deep learning compiler is a core tool to deploy neural network models to specific hardware platforms and optimize them, and its correctness is crucial to improve the reliability of neural network applications.
+In recent years, some researchers have used the common technology of finding program bugs in the field of software engineering, fuzzing, to find implementation errors in deep learning compilers by generating a large number of test cases containing single or multiple operators and combining differential testing. However, the diversity of the generated test cases still has room for improvement, and the optimization logic in the compiler has not been triggered as much as possible to achieve sufficient testing.
 
-  An abstract should be concise and to the point.
-  It is a misunderstanding to make an abstract an outline of the dissertation and words “the first chapter”, “the second chapter” and the like should be avoided in the abstract.
+Facing the problems above, in terms of method, we extend the existing graph generation algorithm, symbolic graph generation, by introducing concrete operators for hybrid graph generation, which improves the diversity of computation graphs in fuzzing test cases.
+Experiments show that for the two commonly used frameworks, PyTorch and TensorFlow, our method can respectively improve the branch coverage by 14.9\% and 23.5\%, and submit 62 and 14 bugs or vulnerabilities in the research process, with advantages in both test case diversity and practical significance.
+Meanwhile, we propose a set of rules for classification on the concrete operator dataset, which lays the foundation for future work on test case generation based on automatic rule and constraint inference.
 
-  Keywords are terms used in a dissertation for indexing, reflecting core information of the dissertation.
-  An abstract may contain a maximum of 5 keywords, with semi-colons used in between to separate one another.
+In terms of engineering, we extend the existing open source project NNSmith. We not only implement the collection and classification of concrete operators as well as the hybrid computation graph generation, but also implement the mutual conversion between the Python code description of the model and the intermediate representation of the graph, which enhances the effectiveness of the test case and provides an implementation basis for making full use of existing code from other sources.
+The core functions of this project have been merged into the NNSmith repository on GitHub, which provides convenience for follow-up research and application in real scenarios.
+
+Empirically, we demonstrate typical bugs hidden behind deep learning compilers and analyze their root causes, intuitively presenting the significance of fuzzing deep learning frameworks and the importance of reliability research on modern machine learning systems. 
 
 % Use comma as separator when inputting
 \thusetup{
-  keywords* = {keyword 1, keyword 2, keyword 3, keyword 4, keyword 5},
+  keywords* = {Deep Learning Compiler, Computation Graph, Test Case Generation, Fuzzing, Differential Testing},
 }
 \end{abstract*}
