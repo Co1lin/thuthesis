@@ -5,8 +5,8 @@
 
 \section{程序分析与测例构造}
 
-对软件进行测试是提高软件可靠性或寻找潜在漏洞的重要方法，其中关键在于如何编写能覆盖到程序中尽可能多的逻辑，或能触发错误的测例。下面我们在传统程序测试的背景下，结合具体示例，简要介绍三种可用于构造测例的程序分析手段，其中的思想是本文改进计算图生成算法的基础。
-待测试程序如代码 \ref{listing:testme} 所示，我们的目标是构造特定的输入组合 $(x, y)$ 以触发第 \ref{listing:testme:bug} 行潜在的除以 0 错误。为了更加清晰地呈现程序的执行过程，我们将第 \ref{listing:testme:bug} 行等价地展开为第 \ref{listing:testme:bugexp:s}-\ref{listing:testme:bugexp:e} 行的逻辑。
+对软件进行测试是提高软件可靠性或寻找潜在漏洞的重要方法，其中关键在于如何编写能覆盖到程序中尽可能多的逻辑，或能触发错误的测例。下面本文在传统程序测试的背景下，结合具体示例，简要介绍三种可用于构造测例的程序分析手段，其中的思想是本文改进计算图生成算法的基础。
+待测试程序如代码 \ref{listing:testme} 所示，本文的目标是构造特定的输入组合 $(x, y)$ 以触发第 \ref{listing:testme:bug} 行潜在的除以 0 错误。为了更加清晰地呈现程序的执行过程，本文将第 \ref{listing:testme:bug} 行等价地展开为第 \ref{listing:testme:bugexp:s}-\ref{listing:testme:bugexp:e} 行的逻辑。
 
 \begin{listing}[]
     \caption{存在潜在错误的待测试程序}
